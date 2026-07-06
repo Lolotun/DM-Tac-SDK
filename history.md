@@ -103,4 +103,51 @@ depth_frame_42 = data["depth"][42]   # (288,384), без парсинга
 
 ## .gitignore исключает
 
-`venv/`, `vendor/.../build/`, `vendor/.../dmrobotics.egg-info/`, `vendor/.../dmrobotics/lib/`, `logs/*.log`, `data/recordings*/`, `data/test.h5`
+`venv/`, `vendor/.../build/`, `vendor/.../dmrobotics.egg-info/`, `vendor/.../dmrobotics/lib/`, `logs/*.log`, `data/`
+
+---
+
+## Что сделано (реорганизация и git)
+
+### Среда (venv)
+- Старый `venv` в `SDK_Publish_1.2.10/venv/` был нерабочим: `pyvenv.cfg` ссылался на `/home/physicalai/miniconda3/...` (другая машина).
+- Пересобран через `uv` (python 3.11.15 из conda env `g1-kinematics`) в `DM-Tac-SDK/venv/`.
+- Установка: `uv pip install -e ./vendor/SDK_Publish_1.2.10[gpu]` — GPU-режим через pip, но `dmrobotics trt build` упал.
+- **GPU trt build**: `libcudart.so` не найдена ни в venv, ни в системе (только driver, Toolkit не установлен). Фикс: `uv pip install nvidia-cuda-runtime-cu12` + `export DMSDK_CUDART_PATH=...`. Пока **оставлено на CPU**.
+- `uv` установлен в `/home/sa/snap/code/247/.local/bin/uv` (VSCode snap-окружение, не виден в обычном PATH).
+
+### Структура репозитория
+Реорганизация из плоского `SDK_Publish_1.2.10/` в:
+```
+vendor/SDK_Publish_1.2.10/   ← оригинал SDK нетронутый
+scripts/{live_view,recording,offline,slip_detection,standalone}/
+data/                        ← gitignored, 32 ГБ
+venv/                        ← gitignored (internal .gitignore с *)
+```
+
+### Git
+- `git init` сделан пользователем вручную, первый коммит "mesh with vibecoded files".
+- Второй коммит `d546931`: реорганизация + обновлённый `.gitignore`.
+- В коммит вошли: все скрипты, vendor python-код, Daimon/*.so (8 бинарей pyarmor runtime, ~5.6 МБ, необходимы для работы SDK), `depth.gif`/`depth_frame*.png` (визуализации depth-карт), `history.md`.
+- Не вошли: `vendor/.../dmrobotics/lib/` (562 МБ), `vendor/.../build/` (571 МБ), `data/` (32 ГБ), `venv/`.
+- Подключение remote к GitHub: `git remote add origin <URL>` — **ещё не сделано**, ждёт URL репозитория от пользователя.
+
+### Скрипты пользователя (написаны самостоятельно)
+- `scripts/offline/parse_data.py` — анализ CSV: средний интервал между кадрами, парсинг depth/deformation.
+- `scripts/offline/csv_to_npz.py` — конвертер CSV → NPZ (написан пользователем).
+- Визуализации `depth.gif`, `depth_frame.png`, `depth_frame_cv.png` — результаты работы с данными.
+
+### Паттерн загрузки данных (итоговый)
+```python
+# правильный diff по времени (не через срезы — index alignment!)
+df["time_s"].diff().mean()   # ~0.099 с между кадрами ≈ 10 FPS
+
+# парсинг dense-полей из CSV
+depth = np.vstack([np.fromstring(s, sep=";") for s in df["depth_values"]]).reshape(N, 288, 384)
+deform = np.stack([...def_x..., ...def_y...], axis=-1)  # (N,288,384,2)
+
+# рекомендуемый формат хранения — NPZ
+np.savez_compressed("session.npz", time=..., force=..., depth=..., deformation=...)
+data = np.load("session.npz")
+data["depth"][frame_idx]  # (288,384) без парсинга
+```
