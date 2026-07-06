@@ -3,20 +3,17 @@ __pycache__/
 *.pyc
 *.pyo
 
-# Virtual env
-SDK_Publish_1.2.10/venv/
+# Virtual environments (internal .gitignore inside venv/ also handles this)
+venv/
 
-# Build artifacts / packaging metadata
-SDK_Publish_1.2.10/build/
-SDK_Publish_1.2.10/dmrobotics.egg-info/
-
-# Vendor binary blobs (large, unchanging .so/.onnx/.pt models from Daimon)
-SDK_Publish_1.2.10/dmrobotics/lib/
+# Vendor SDK — generated/binary artifacts (huge, not source code)
+vendor/SDK_Publish_1.2.10/venv/
+vendor/SDK_Publish_1.2.10/build/
+vendor/SDK_Publish_1.2.10/dmrobotics.egg-info/
+vendor/SDK_Publish_1.2.10/dmrobotics/lib/
 
 # Logs
-SDK_Publish_1.2.10/logs/*.log
+logs/*.log
 
-# Recorded experiment data (large, not source)
-SDK_Publish_1.2.10/recordings/
-SDK_Publish_1.2.10/recordings_with_water/
-SDK_Publish_1.2.10/test.h5
+# Experiment data (large)
+data/

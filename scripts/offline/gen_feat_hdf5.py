@@ -17,7 +17,7 @@ What this script does
     - depth (scaled to uint8 for preview)
 - Prints approximate output FPS to the terminal
 
-Keyboard controls
+Keyboard controlspip install .[gpu]
 -----------------
 - 'q' : quit
 
