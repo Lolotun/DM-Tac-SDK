@@ -70,7 +70,7 @@ def _compute_ylim(ybuf, min_abs=1.0, margin_ratio=0.08, min_margin=1e-3):
 def main():
     # ====== Tune these parameters as needed ======
     dev_id = 0
-    backend = "cuda"          # "cpu" / "cuda"
+    backend = "cpu"          # "cpu" / "cuda"
     max_fps = 10
     max_points = 1200
     update_hz = 10

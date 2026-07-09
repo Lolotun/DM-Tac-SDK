@@ -63,7 +63,7 @@ def main():
     parser.add_argument("--anim-name", default="depth.gif", help="filename for the saved animation")
     parser.add_argument("--threshold", type=float, default=-4.0, help="fz threshold used to pick the start frame")
     parser.add_argument("--n-frames", type=int, default=40, help="number of frames in the animation")
-    parser.add_argument("--fps", type=float, default=1, help="playback/save speed of the animation")
+    parser.add_argument("--fps", type=float, default=2, help="playback/save speed of the animation")
     args = parser.parse_args()
 
     args.output_dir.mkdir(parents=True, exist_ok=True)
@@ -74,15 +74,19 @@ def main():
     depth = data["depth"]
     deformation = data["deformation"]
 
-    idx = np.where(force[:, 2] < args.threshold)[0]
-    print(time[idx])
-    i = max(0, idx[2] )
+    # idx = np.where(force[:, 2] < args.threshold)[0]
+    idx =  np.where(time >7.00 )[0][0]
+    # print(idx)
 
+    print(time[idx])
+    # i = max(0, idx[2] )
+    i = idx
     print (np.min(depth), np.max(depth[4:]))
 
     save_frame(depth, i, args.output_dir / args.frame_name)
 
     n_frames = min(args.n_frames, len(depth) - i)
+    # n_frames = max(1, n_frames)  # Ensure at least one frame is animated
     animate_deformation(
         time, depth, deformation,
         start_idx=i,
